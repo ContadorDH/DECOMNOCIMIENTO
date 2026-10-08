@@ -151,7 +151,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     stage.style.height=renderH+'px';
     clone.style.height=renderH+'px';
 
-    const rendered=await html2canvas(clone,{
+    const rendered=await html2canvas(stage,{
       width:W,
       height:renderH,
       windowWidth:W,
