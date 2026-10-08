@@ -140,7 +140,9 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     return out;
   }
   async function share(){
-    const c=imageCanvas(d), blob=await new Promise(r=>c.toBlob(r,'image/png',.95));
+    try{
+      const c=await imageCanvas(d);
+      const blob=await new Promise(r=>c.toBlob(r,'image/png',.95));
     if(!blob){copyLink();return}
     const file=new File([blob],'resultado-deconocimiento-9x16.png',{type:'image/png'});
     const link=location.href;
@@ -158,7 +160,11 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     }
     // En navegadores sin Web Share, entrega la imagen y copia el enlace como respaldo.
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='resultado-deconocimiento-9x16.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    copyLink();
+      copyLink();
+    }catch(err){
+      console.error('Compartir resultado:',err);
+      alert('No se pudo preparar la imagen para compartir. Intenta nuevamente.');
+    }
   }
   function copyLink(){
     navigator.clipboard?.writeText(location.href).then(()=>alert('La imagen se guardó y el enlace quedó copiado.')).catch(()=>window.prompt('Copia este enlace:',location.href));
