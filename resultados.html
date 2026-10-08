@@ -25,7 +25,7 @@ body{
 }
 body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 45%,rgba(0,0,0,.5) 100%)}
 .wrap{width:min(920px,calc(100% - 28px));margin:0 auto;padding:34px 0 45px;position:relative}
-.brand{text-align:center;margin-bottom:18px}.brand .small{font-size:11px;font-weight:900;letter-spacing:4px;color:var(--cyan2);text-transform:uppercase}.brand h1{margin:5px 0 0;font-size:clamp(25px,5vw,48px);font-weight:950;letter-spacing:1px;text-transform:uppercase;text-shadow:0 0 22px rgba(39,199,255,.32)}
+.brand{text-align:center;margin-bottom:18px}.brand h1 span{display:block}.brand h1 span+span{margin-top:2px}.brand .small{font-size:11px;font-weight:900;letter-spacing:4px;color:var(--cyan2);text-transform:uppercase}.brand h1{margin:5px 0 0;font-size:clamp(25px,5vw,48px);font-weight:950;letter-spacing:1px;text-transform:uppercase;text-shadow:0 0 22px rgba(39,199,255,.32)}
 .card{position:relative;overflow:hidden;border:1px solid rgba(80,200,255,.38);border-radius:25px;background:linear-gradient(145deg,rgba(12,43,78,.96),rgba(3,14,29,.97));box-shadow:0 25px 80px rgba(0,0,0,.5),0 0 45px rgba(39,199,255,.08),inset 0 1px rgba(255,255,255,.08);padding:30px}
 .card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.045) 50%,transparent 80%);transform:translateX(-80%);animation:sweep 7s ease-in-out infinite}@keyframes sweep{55%,100%{transform:translateX(80%)}}
 .ribbon{display:flex;align-items:center;justify-content:center;gap:9px;color:var(--oro);font-size:12px;font-weight:950;letter-spacing:3px;text-transform:uppercase}.ribbon:before,.ribbon:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(255,209,102,.55))}.ribbon:after{background:linear-gradient(90deg,rgba(255,209,102,.55),transparent)}
@@ -44,7 +44,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 <main class="wrap">
   <header class="brand">
     <div class="small" id="brandSmall">Resultado de partida</div>
-    <h1 id="brandTitle">DECONOCIMIENTO BÍBLICO</h1>
+    <h1 id="brandTitle"><span>DECONOCIMIENTO</span><span>BÍBLICO</span></h1>
   </header>
   <section id="resultado" class="card"><div class="error"><h2>Cargando resultado…</h2><p>Preparando tu tarjeta de partida.</p></div></section>
   <div class="footer">RESULTADO GENERADO POR LA MÁQUINA ARCADE · DECONOCIMIENTO BÍBLICO</div>
@@ -79,61 +79,74 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   }
   function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
   function imageCanvas(d){
-    const duel=d.tipo==='duelo', W=1200, H=duel?1050:1180, c=document.createElement('canvas');
+    // Imagen vertical 9:16, diseñada para historias/WhatsApp/Instagram.
+    const duel=d.tipo==='duelo', W=1080, H=1920, c=document.createElement('canvas');
     c.width=W;c.height=H;const x=c.getContext('2d');
-    const bg=x.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0a2a52');bg.addColorStop(.5,'#061a33');bg.addColorStop(1,'#030914');x.fillStyle=bg;x.fillRect(0,0,W,H);
-    const glow=x.createRadialGradient(W/2,180,20,W/2,180,600);glow.addColorStop(0,'rgba(39,199,255,.24)');glow.addColorStop(1,'rgba(39,199,255,0)');x.fillStyle=glow;x.fillRect(0,0,W,500);
-    x.strokeStyle='rgba(39,199,255,.55)';x.lineWidth=3;x.strokeRect(34,34,W-68,H-68);
+    const bg=x.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0a2a52');bg.addColorStop(.48,'#061a33');bg.addColorStop(1,'#030914');x.fillStyle=bg;x.fillRect(0,0,W,H);
+    const glow=x.createRadialGradient(W/2,260,20,W/2,260,760);glow.addColorStop(0,'rgba(39,199,255,.25)');glow.addColorStop(1,'rgba(39,199,255,0)');x.fillStyle=glow;x.fillRect(0,0,W,700);
+    // rejilla tenue, como la página
+    x.strokeStyle='rgba(100,190,255,.045)';x.lineWidth=1;
+    for(let y=0;y<H;y+=56){x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke()}
+    for(let xx=0;xx<W;xx+=56){x.beginPath();x.moveTo(xx,0);x.lineTo(xx,H);x.stroke()}
+    x.strokeStyle='rgba(39,199,255,.55)';x.lineWidth=3;x.strokeRect(30,30,W-60,H-60);
     const rr=(px,py,pw,ph,r,fill,stroke)=>{x.beginPath();x.roundRect(px,py,pw,ph,r);x.fillStyle=fill;x.fill();if(stroke){x.strokeStyle=stroke;x.lineWidth=2;x.stroke()}};
     const txt=(v,px,py,size,color,weight='800',align='center')=>{x.font=weight+' '+size+'px Inter,Segoe UI,Arial,sans-serif';x.fillStyle=color;x.textAlign=align;x.textBaseline='middle';x.fillText(String(v),px,py)};
-    const app=d.titulo||'DECONOCIMIENTO BÍBLICO';
-    txt(app.split('|')[0],W/2,82,34,'#8be6ff','900');
-    txt(d.iglesia||'',W/2,122,22,'#9bb4ca','700');
+    const app=String(d.titulo||'DECOMNOCIMIENTO|BÍBLICO');
+    const parts=app.split('|').map(v=>v.trim()).filter(Boolean);
+    txt(parts[0]||'DECOMNOCIMIENTO',W/2,92,42,'#8be6ff','900');
+    txt(parts[1]||'BÍBLICO',W/2,142,34,'#f5fbff','900');
+    txt(d.iglesia||'',W/2,188,22,'#9bb4ca','700');
+    // Card principal: misma proporción visual que la página móvil.
+    const cx=45, cy=245, cw=990, ch=1500;
+    rr(cx,cy,cw,ch,30,'rgba(5,22,43,.86)','rgba(80,200,255,.38)');
     if(!duel){
-      txt('RESULTADO DE PARTIDA',W/2,188,24,'#ffd166','900');
-      txt(d.jugador||'Jugador',W/2,245,38,'#f5fbff','900');
-      txt(num(d.puntos),W/2,365,112,'#ffd166','1000'); txt('PUNTOS',W/2,435,20,'#9bb4ca','900');
+      txt('🏆  RESULTADO INDIVIDUAL',W/2,305,22,'#ffd166','900');
+      txt(d.jugador||'Jugador',W/2,395,39,'#f5fbff','900');
+      txt(num(d.puntos),W/2,520,118,'#ffd166','1000');
+      txt('PUNTOS',W/2,588,19,'#9bb4ca','900');
+      rr(360,635,360,66,34,'rgba(39,199,255,.08)','rgba(39,199,255,.35)');
+      txt('★ '+(d.nivel||'Jugador'),W/2,668,18,'#8be6ff','900');
       const boxes=[[''+(d.aciertos||0)+' / '+(d.total||0),'ACIERTOS','#39e39b'],[''+(d.racha||0),'MEJOR RACHA','#ffd166'],[d.puesto?'#'+d.puesto:'—','PUESTO','#8be6ff']];
-      boxes.forEach((b,i)=>{const bx=70+i*365;rr(bx,500,335,145,18,'rgba(255,255,255,.045)','rgba(140,200,235,.18)');txt(b[0],bx+167,555,38,b[2],'950');txt(b[1],bx+167,605,14,'#9bb4ca','900')});
-      txt((d.nivel||'JUGADOR').toUpperCase(),W/2,720,28,'#8be6ff','900');
-      txt(d.cat||'',W/2,760,20,'#d9ebf7','700');
-      txt(d.completo?'PARTIDA COMPLETADA':'PARTIDA FINALIZADA',W/2,850,21,'#39e39b','900');
+      boxes.forEach((b,i)=>{const bx=78+i*315;rr(bx,760,285,150,18,'rgba(255,255,255,.045)','rgba(140,200,235,.18)');txt(b[0],bx+142,820,39,b[2],'950');txt(b[1],bx+142,872,13,'#9bb4ca','900')});
+      if(d.cat) { rr(115,955,850,62,13,'rgba(0,0,0,.20)','rgba(140,190,230,.15)');txt('Categoría: '+d.cat,W/2,986,17,'#d9ebf7','800'); }
+      rr(235,1050,610,62,13,'rgba(0,0,0,.20)','rgba(140,190,230,.15)');txt(d.completo?'PARTIDA COMPLETADA':'PARTIDA FINALIZADA',W/2,1081,17,'#39e39b','900');
+      rr(270,1145,540,62,13,'rgba(0,0,0,.20)','rgba(140,190,230,.15)');txt(fecha(d.fecha),W/2,1176,16,'#9bb4ca','800');
+      txt('●  RESULTADO REGISTRADO',W/2,1280,18,'#39e39b','900');
     }else{
-      txt('⚡ DUELO BÍBLICO',W/2,188,24,'#ffd166','900');
-      const ps=[d.a,d.b]; ps.forEach((p,i)=>{const bx=i?650:70;rr(bx,255,480,360,22,'rgba(255,255,255,.045)',d.gana===i?'rgba(255,209,102,.7)':'rgba(140,200,235,.18)');txt(p.nombre,bx+240,305,30,'#f5fbff','900');txt(num(p.puntos),bx+240,400,65,'#ffd166','1000');txt((p.aciertos||0)+' / '+(p.respondidas||0)+' aciertos',bx+240,470,17,'#9bb4ca','800');txt('RACHA '+(p.racha||0),bx+240,525,15,'#8be6ff','900');if(d.gana===i)txt('🏆 GANADOR',bx+240,575,16,'#ffd166','900')});
-      txt('VS',W/2,435,34,'#27c7ff','1000');
-      txt(d.ganador?'GANADOR: '+d.ganador:'EMPATE',W/2,700,27,d.ganador?'#ffd166':'#8be6ff','900');
-      txt(d.cat||'',W/2,755,20,'#d9ebf7','700');
+      txt('⚡  DUELO BÍBLICO',W/2,310,22,'#ffd166','900');
+      if(d.cat){rr(350,350,380,60,30,'rgba(39,199,255,.08)','rgba(39,199,255,.35)');txt(d.cat,W/2,380,17,'#8be6ff','900')}
+      const ps=[d.a,d.b]; ps.forEach((p,i)=>{const by=460+i*365;rr(105,by,870,315,24,'rgba(255,255,255,.045)',d.gana===i?'rgba(255,209,102,.7)':'rgba(140,200,235,.18)');txt(p.nombre,540,by+55,31,'#f5fbff','900');txt(num(p.puntos),540,by+135,70,'#ffd166','1000');txt((p.aciertos||0)+' / '+(p.respondidas||0)+' aciertos',540,by+205,17,'#9bb4ca','800');txt('RACHA '+(p.racha||0),540,by+255,15,'#8be6ff','900');if(d.gana===i)txt('🏆  GANADOR',540,by+292,16,'#ffd166','900')});
+      txt('VS',W/2,830,34,'#27c7ff','1000');
+      txt(d.ganador?'GANADOR: '+d.ganador:'EMPATE',W/2,1230,27,d.ganador?'#ffd166':'#8be6ff','900');
+      txt('●  RESULTADO REGISTRADO',W/2,1320,18,'#39e39b','900');
+      txt(fecha(d.fecha),W/2,1380,16,'#9bb4ca','800');
     }
-    txt('DECONOCIMIENTO BÍBLICO · RESULTADO COMPARTIDO',W/2,H-82,15,'#718ba2','800');
+    txt('DECONOCIMIENTO BÍBLICO · RESULTADO COMPARTIDO',W/2,1840,15,'#718ba2','800');
     return c;
   }
   async function share(){
     const c=imageCanvas(d), blob=await new Promise(r=>c.toBlob(r,'image/png',.95));
-    const file=blob?new File([blob],'resultado-deconocimiento.png',{type:'image/png'}):null;
+    if(!blob){copyLink();return}
+    const file=new File([blob],'resultado-deconocimiento-9x16.png',{type:'image/png'});
+    const link=location.href;
+    const text='Mi resultado de partida · '+(d.iglesia||'')+'\n'+link;
     if(navigator.share){
       try{
-        if(file && navigator.canShare && navigator.canShare({files:[file]})){
-          await navigator.share({title:(d.titulo||'Deconocimiento Bíblico')+' · '+(d.iglesia||''),text:'Mi resultado de partida',url:location.href,files:[file]});
+        // Una sola acción: imagen + enlace en el mismo contenido compartido.
+        if(!navigator.canShare || navigator.canShare({files:[file]})){
+          await navigator.share({title:(d.titulo||'DECOMNOCIMIENTO BÍBLICO')+' · '+(d.iglesia||''),text,files:[file]});
           return;
         }
-        await navigator.share({title:'Mi resultado · '+(d.titulo||'Deconocimiento Bíblico'),text:'Mira mi resultado de partida',url:location.href});
+        await navigator.share({title:(d.titulo||'DECOMNOCIMIENTO BÍBLICO')+' · '+(d.iglesia||''),text});
         return;
       }catch(e){if(e&&e.name==='AbortError')return}
     }
-    copy();
+    // En navegadores sin Web Share, entrega la imagen y copia el enlace como respaldo.
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='resultado-deconocimiento-9x16.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    copyLink();
   }
-  async function shareImage(){
-    const c=imageCanvas(d), blob=await new Promise(r=>c.toBlob(r,'image/png',.95));
-    if(!blob)return;
-    const file=new File([blob],'resultado-deconocimiento.png',{type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      try{await navigator.share({title:'Resultado · '+(d.iglesia||''),text:'Mi resultado de Deconocimiento Bíblico',files:[file]});return}catch(e){if(e&&e.name==='AbortError')return}
-    }
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='resultado-deconocimiento.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  }
-  function copy(){
-    navigator.clipboard?.writeText(location.href).then(()=>alert('Enlace copiado.')).catch(()=>window.prompt('Copia este enlace:',location.href));
+  function copyLink(){
+    navigator.clipboard?.writeText(location.href).then(()=>alert('La imagen se guardó y el enlace quedó copiado.')).catch(()=>window.prompt('Copia este enlace:',location.href));
   }
   function stat(n,l,cls){return '<div class="stat '+(cls||'')+'"><div class="n">'+esc(n)+'</div><div class="l">'+esc(l)+'</div></div>'}
   function renderIndividual(d){
@@ -153,14 +166,14 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
       '<div class="hero" style="padding:22px 0 4px"><div class="badge">'+(d.ganador?'🏆 Ganador: '+esc(d.ganador):'EMPATE')+'</div></div>'+
       '<div class="meta">'+(d.modo?'<span class="chip">Modo: <b>'+esc(d.modo)+'</b></span>':'')+(d.victorias!=null?'<span class="chip">Victorias: <b>'+esc(d.victorias)+'</b></span>':'')+'<span class="chip">'+esc(fecha(d.fecha))+'</span></div>'+buttons();
   }
-  function buttons(){return '<div class="share"><button class="btn" id="share">↗ Compartir resultado</button><button class="btn" id="shareImage">▣ Compartir imagen</button><button class="btn alt" id="copy">⧉ Copiar enlace</button></div>'}
+  function buttons(){return '<div class="share"><button class="btn" id="share">↗ Compartir resultado · imagen + enlace</button></div>'}
   const d=decode(),host=$('#resultado');
   if(!d){host.innerHTML='<div class="error"><h2>Resultado no disponible</h2><p>El enlace no contiene una partida válida o está incompleto.</p></div>';return}
-  const bt=$('#brandTitle'); if(bt) bt.textContent=d.titulo||'DECONOCIMIENTO BÍBLICO';
+  const bt=$('#brandTitle'); if(bt){ const parts=String(d.titulo||'DECOMNOCIMIENTO|BÍBLICO').split('|').map(v=>v.trim()).filter(Boolean); bt.innerHTML='<span>'+esc(parts[0]||'DECOMNOCIMIENTO')+'</span><span>'+esc(parts[1]||'BÍBLICO')+'</span>'; }
   const bs=$('#brandSmall'); if(bs) bs.textContent=d.iglesia||'Resultado de partida';
   document.title=(d.titulo||'Deconocimiento Bíblico')+' · '+(d.iglesia||'Resultado');
   host.innerHTML=d.tipo==='duelo'?renderDuel(d):renderIndividual(d);
-  $('#share').onclick=share;$('#shareImage').onclick=shareImage;$('#copy').onclick=copy;
+  $('#share').onclick=share;
 })();
 </script>
 </body>
