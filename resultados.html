@@ -97,11 +97,25 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     const W=390;
     const H=Math.round(W*16/9); // 693.333...
     const stage=document.createElement('div');
-    stage.style.cssText='position:fixed;left:-20000px;top:0;width:'+W+'px;height:'+H+'px;overflow:hidden;background:#030914;z-index:-1;';
+    const bodyStyle=getComputedStyle(document.body);
+    stage.style.cssText='position:fixed;left:-20000px;top:0;width:'+W+'px;height:'+H+'px;overflow:hidden;z-index:-1;'
+      +'background-color:'+bodyStyle.backgroundColor+';'
+      +'background-image:'+bodyStyle.backgroundImage+';'
+      +'background-repeat:'+bodyStyle.backgroundRepeat+';'
+      +'background-position:'+bodyStyle.backgroundPosition+';'
+      +'background-size:'+bodyStyle.backgroundSize+';';
+
+    // La página real tiene además una capa de viñeta suave (body::before).
+    // La reproducimos solo dentro de la imagen compartida para que el encabezado
+    // conserve exactamente el ambiente visual de la página, sin alterar la página.
+    const backdrop=document.createElement('div');
+    backdrop.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:0;'
+      +'background:radial-gradient(circle at 50% 50%,transparent 45%,rgba(0,0,0,.5) 100%);';
+    stage.appendChild(backdrop);
 
     const clone=source.cloneNode(true);
     clone.id='shareClone';
-    clone.style.cssText='width:100%;max-width:none;margin:0;padding:18px 8px 24px;position:relative;box-sizing:border-box;';
+    clone.style.cssText='width:100%;max-width:none;margin:0;padding:18px 8px 24px;position:relative;box-sizing:border-box;z-index:1;';
 
     // Elimina cualquier elemento interactivo de la captura y conserva su espacio
     // reemplazándolo por el bloque informativo que pediste.
