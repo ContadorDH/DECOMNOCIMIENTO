@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#061a33">
+<meta name="description" content="Resultado de partida de Deconocimiento Bíblico">
+<title>Resultado · Deconocimiento Bíblico</title>
+<style>
+:root{
+  --noche:#030914;--azul:#061a33;--azul2:#0a2a52;--cyan:#27c7ff;
+  --cyan2:#8be6ff;--oro:#ffd166;--oro2:#f0a800;--verde:#39e39b;
+  --rojo:#ff6070;--texto:#f5fbff;--tenue:#9bb4ca;--panel:rgba(7,25,48,.86);
+}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--texto)}
+body{
+  min-height:100vh;overflow-x:hidden;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 20%,rgba(80,190,255,.045) 0 3deg,transparent 3deg 11deg),
+    radial-gradient(800px 500px at 50% 8%,rgba(40,150,230,.28),transparent 70%),
+    radial-gradient(700px 400px at 50% 105%,rgba(240,168,0,.13),transparent 70%),
+    repeating-linear-gradient(0deg,rgba(100,190,255,.035) 0 1px,transparent 1px 42px),
+    repeating-linear-gradient(90deg,rgba(100,190,255,.035) 0 1px,transparent 1px 42px),
+    linear-gradient(145deg,#0a2a52 0%,#061a33 48%,#030914 100%);
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 45%,rgba(0,0,0,.5) 100%)}
+.wrap{width:min(920px,calc(100% - 28px));margin:0 auto;padding:34px 0 45px;position:relative}
+.brand{text-align:center;margin-bottom:18px}.brand .small{font-size:11px;font-weight:900;letter-spacing:4px;color:var(--cyan2);text-transform:uppercase}.brand h1{margin:5px 0 0;font-size:clamp(25px,5vw,48px);font-weight:950;letter-spacing:1px;text-transform:uppercase;text-shadow:0 0 22px rgba(39,199,255,.32)}
+.card{position:relative;overflow:hidden;border:1px solid rgba(80,200,255,.38);border-radius:25px;background:linear-gradient(145deg,rgba(12,43,78,.96),rgba(3,14,29,.97));box-shadow:0 25px 80px rgba(0,0,0,.5),0 0 45px rgba(39,199,255,.08),inset 0 1px rgba(255,255,255,.08);padding:30px}
+.card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.045) 50%,transparent 80%);transform:translateX(-80%);animation:sweep 7s ease-in-out infinite}@keyframes sweep{55%,100%{transform:translateX(80%)}}
+.ribbon{display:flex;align-items:center;justify-content:center;gap:9px;color:var(--oro);font-size:12px;font-weight:950;letter-spacing:3px;text-transform:uppercase}.ribbon:before,.ribbon:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(255,209,102,.55))}.ribbon:after{background:linear-gradient(90deg,rgba(255,209,102,.55),transparent)}
+.hero{text-align:center;padding:18px 0 22px}.hero .player{font-size:clamp(22px,5vw,40px);font-weight:950;text-transform:uppercase;letter-spacing:1px}.hero .score{font-size:clamp(55px,12vw,104px);line-height:.94;margin:10px 0 3px;font-weight:1000;color:var(--oro);letter-spacing:-2px;text-shadow:0 0 28px rgba(255,209,102,.35)}.hero .score-label{font-size:11px;font-weight:900;letter-spacing:4px;color:var(--tenue);text-transform:uppercase}
+.badge{display:inline-flex;align-items:center;gap:7px;margin-top:15px;padding:8px 14px;border:1px solid rgba(39,199,255,.35);border-radius:999px;background:rgba(39,199,255,.08);color:var(--cyan2);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:4px 0 22px}.stat{border:1px solid rgba(130,190,230,.16);border-radius:16px;padding:16px 10px;text-align:center;background:rgba(255,255,255,.035)}.stat .n{font-size:clamp(25px,5vw,40px);font-weight:950;line-height:1;color:#fff}.stat .l{margin-top:6px;font-size:10px;font-weight:900;letter-spacing:1.8px;color:var(--tenue);text-transform:uppercase}.stat.gold .n{color:var(--oro)}.stat.green .n{color:var(--verde)}
+.meta{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:4px 0 23px}.chip{padding:8px 11px;border-radius:9px;background:rgba(0,0,0,.2);border:1px solid rgba(140,190,230,.15);color:#d9ebf7;font-size:11px;font-weight:800}.chip b{color:var(--cyan2)}
+.status{display:flex;justify-content:center;align-items:center;gap:8px;color:var(--verde);font-weight:900;font-size:12px;letter-spacing:1.5px;text-transform:uppercase}.dot{width:8px;height:8px;border-radius:50%;background:var(--verde);box-shadow:0 0 13px var(--verde)}
+.duel-head{text-align:center;color:var(--oro);font-weight:950;letter-spacing:3px;font-size:12px;text-transform:uppercase;margin-bottom:15px}.versus{display:grid;grid-template-columns:1fr 80px 1fr;gap:12px;align-items:center}.player-card{border:1px solid rgba(80,200,255,.2);border-radius:17px;padding:18px 12px;text-align:center;background:rgba(255,255,255,.035)}.player-card.winner{border-color:rgba(255,209,102,.55);box-shadow:0 0 26px rgba(255,209,102,.1)}.player-card .name{font-weight:950;font-size:18px;text-transform:uppercase}.player-card .pts{font-weight:1000;font-size:36px;color:var(--oro);margin:7px 0}.player-card .small{font-size:10px;color:var(--tenue);font-weight:800}.vs{font-weight:1000;font-size:21px;color:var(--cyan);text-align:center;text-shadow:0 0 16px rgba(39,199,255,.55)}.winner-label{display:inline-block;margin-top:10px;color:var(--oro);font-size:10px;font-weight:950;letter-spacing:1.5px;text-transform:uppercase}
+.share{margin-top:24px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.btn{appearance:none;border:0;border-radius:12px;padding:13px 18px;font:900 12px Inter,Segoe UI,Arial;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:#06101c;background:linear-gradient(135deg,#8be6ff,#27c7ff);box-shadow:0 7px 22px rgba(39,199,255,.18)}.btn.alt{color:#f5fbff;background:rgba(255,255,255,.06);border:1px solid rgba(150,200,230,.2);box-shadow:none}.btn:active{transform:translateY(1px)}
+.footer{text-align:center;margin-top:17px;color:#718ba2;font-size:10px;letter-spacing:1px}.error{text-align:center;padding:45px 10px}.error h2{margin:0 0 10px;color:var(--rojo)}.error p{color:var(--tenue)}
+@media(max-width:620px){.wrap{width:min(100% - 16px,920px);padding-top:18px}.card{padding:21px 15px;border-radius:20px}.stats{gap:7px}.stat{padding:13px 5px}.versus{grid-template-columns:1fr;gap:8px}.vs{font-size:16px}.player-card .pts{font-size:31px}.share .btn{width:100%}.brand h1{font-size:28px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="brand">
+    <div class="small">Resultado de partida</div>
+    <h1>DECONOCIMIENTO BÍBLICO</h1>
+  </header>
+  <section id="resultado" class="card"><div class="error"><h2>Cargando resultado…</h2><p>Preparando tu tarjeta de partida.</p></div></section>
+  <div class="footer">RESULTADO GENERADO POR LA MÁQUINA ARCADE · DECONOCIMIENTO BÍBLICO</div>
+</main>
+<script>
+(function(){
+  'use strict';
+  const $=s=>document.querySelector(s);
+  const esc=s=>String(s==null?'':s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const num=n=>Number(n||0).toLocaleString('es-CO');
+  function decode(){
+    try{
+      const raw=new URLSearchParams(location.search).get('d');
+      if(!raw) return null;
+      const b64=raw.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-raw.length%4)%4);
+      const bin=atob(b64), bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }catch(e){console.error(e);return null}
+  }
+  function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
+  function share(){
+    const data={title:'Mi resultado · Deconocimiento Bíblico',text:'Mira mi resultado de Deconocimiento Bíblico',url:location.href};
+    if(navigator.share){navigator.share(data).catch(()=>{});return}
+    navigator.clipboard?.writeText(location.href).then(()=>alert('Enlace copiado.')).catch(()=>window.prompt('Copia este enlace:',location.href));
+  }
+  function copy(){
+    navigator.clipboard?.writeText(location.href).then(()=>alert('Enlace copiado.')).catch(()=>window.prompt('Copia este enlace:',location.href));
+  }
+  function stat(n,l,cls){return '<div class="stat '+(cls||'')+'"><div class="n">'+esc(n)+'</div><div class="l">'+esc(l)+'</div></div>'}
+  function renderIndividual(d){
+    const estado=d.completo?'PARTIDA COMPLETADA':(d.sinCreditos?'PARTIDA FINALIZADA':'PARTIDA FINALIZADA');
+    return '<div class="ribbon">🏆 Resultado individual</div>'+
+      '<div class="hero"><div class="player">'+esc(d.jugador||'Jugador')+'</div><div class="score">'+num(d.puntos)+'</div><div class="score-label">Puntos</div><div class="badge">★ '+esc(d.nivel||'Jugador')+'</div></div>'+
+      '<div class="stats">'+stat((d.aciertos||0)+' / '+(d.total||0),'Aciertos','green')+stat(d.racha||0,'Mejor racha','gold')+stat(d.puesto?'#'+d.puesto:'—','Puesto')+'</div>'+
+      '<div class="meta">'+(d.cat?'<span class="chip">Categoría: <b>'+esc(d.cat)+'</b></span>':'')+'<span class="chip">'+esc(estado)+'</span><span class="chip">'+esc(fecha(d.fecha))+'</span></div>'+
+      '<div class="status"><span class="dot"></span> Resultado registrado</div>'+buttons();
+  }
+  function pc(p,win){return '<div class="player-card '+(win?'winner':'')+'"><div class="name">'+esc(p.nombre)+'</div><div class="pts">'+num(p.puntos)+'</div><div class="small">'+esc(p.aciertos)+' / '+esc(p.respondidas)+' aciertos · racha '+esc(p.racha)+'</div>'+(win?'<div class="winner-label">🏆 Ganador</div>':'')+'</div>'}
+  function renderDuel(d){
+    const aw=d.gana===0,bw=d.gana===1;
+    return '<div class="duel-head">⚡ Duelo bíblico</div>'+
+      '<div class="hero" style="padding-top:0"><div class="badge">'+esc(d.cat||'Duelo')+'</div></div>'+
+      '<div class="versus">'+pc(d.a,aw)+'<div class="vs">VS</div>'+pc(d.b,bw)+'</div>'+
+      '<div class="hero" style="padding:22px 0 4px"><div class="badge">'+(d.ganador?'🏆 Ganador: '+esc(d.ganador):'EMPATE')+'</div></div>'+
+      '<div class="meta">'+(d.modo?'<span class="chip">Modo: <b>'+esc(d.modo)+'</b></span>':'')+(d.victorias!=null?'<span class="chip">Victorias: <b>'+esc(d.victorias)+'</b></span>':'')+'<span class="chip">'+esc(fecha(d.fecha))+'</span></div>'+buttons();
+  }
+  function buttons(){return '<div class="share"><button class="btn" id="share">↗ Compartir resultado</button><button class="btn alt" id="copy">⧉ Copiar enlace</button></div>'}
+  const d=decode(),host=$('#resultado');
+  if(!d){host.innerHTML='<div class="error"><h2>Resultado no disponible</h2><p>El enlace no contiene una partida válida o está incompleto.</p></div>';return}
+  host.innerHTML=d.tipo==='duelo'?renderDuel(d):renderIndividual(d);
+  $('#share').onclick=share;$('#copy').onclick=copy;
+})();
+</script>
+</body>
+</html>
