@@ -152,23 +152,21 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     });
     stage.remove();
 
-    // Recorta proporcionalmente el diseño completo a 9:16, sin deformarlo.
+    // Mantiene TODO el contenido de la página: no recortamos arriba ni abajo.
+    // La composición se escala proporcionalmente para entrar completa en 9:16.
     const out=document.createElement('canvas');
     out.width=1080; out.height=1920;
     const ctx=out.getContext('2d');
     ctx.imageSmoothingEnabled=true;
     ctx.imageSmoothingQuality='high';
-    const srcRatio=rendered.width/rendered.height;
-    const dstRatio=1080/1920;
-    let sx=0,sy=0,sw=rendered.width,sh=rendered.height;
-    if(srcRatio>dstRatio){
-      sw=Math.round(rendered.height*dstRatio);
-      sx=Math.round((rendered.width-sw)/2);
-    }else if(srcRatio<dstRatio){
-      sh=Math.round(rendered.width/dstRatio);
-      sy=Math.round((rendered.height-sh)/2);
-    }
-    ctx.drawImage(rendered,sx,sy,sw,sh,0,0,1080,1920);
+    ctx.fillStyle='#030914';
+    ctx.fillRect(0,0,1080,1920);
+    const scale=Math.min(1080/rendered.width,1920/rendered.height);
+    const dw=Math.round(rendered.width*scale);
+    const dh=Math.round(rendered.height*scale);
+    const dx=Math.round((1080-dw)/2);
+    const dy=Math.round((1920-dh)/2);
+    ctx.drawImage(rendered,0,0,rendered.width,rendered.height,dx,dy,dw,dh);
     return out;
   }
   
