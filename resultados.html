@@ -81,88 +81,105 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   }
   function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
   async function imageCanvas(d){
-    /* Imagen compartida: composición independiente, moderna y 9:16. */
+    /*
+      COMPARTIR = MISMO DISEÑO DE LA PÁGINA.
+      Se toma la misma estructura, colores, tipografías, tamaños y proporciones
+      de la página visible. Solo se sustituye el botón por información relevante.
+    */
     if(!window.html2canvas) throw new Error('Capturador no disponible');
-    const stage=document.createElement('div');
-    stage.style.cssText='position:fixed;left:-20000px;top:0;width:1080px;height:1920px;overflow:hidden;background:#020817;z-index:-1;';
-    const escv=v=>esc(v);
-    const parts=String(d.titulo||'DECOMNOCIMIENTO|BÍBLICO').split('|').map(v=>v.trim()).filter(Boolean);
-    const title1=escv(parts[0]||'DECOMNOCIMIENTO');
-    const title2=escv(parts[1]||'BÍBLICO');
 
-    let content='';
-    if(d.tipo==='duelo'){
-      const aw=d.gana===0,bw=d.gana===1;
-      const msg=d.ganador?('Defender la victoria de <b>'+escv(d.ganador)+'</b> en el próximo duelo.'):('Desempatar y conseguir la victoria en el próximo duelo.');
-      content=`
-        <div class="s-ribbon"><span>⚡</span> DUELO BÍBLICO</div>
-        <div class="s-cat">${escv(d.cat||'DUELO BÍBLICO')}</div>
-        <div class="s-duel">
-          <div class="s-player ${aw?'win':''}"><div class="s-name">${escv(d.a.nombre)}</div><div class="s-pts">${num(d.a.puntos)}</div><div class="s-small">${escv(d.a.aciertos)} / ${escv(d.a.respondidas)} ACIERTOS</div>${aw?'<div class="s-winner">🏆 GANADOR</div>':''}</div>
-          <div class="s-vs">VS</div>
-          <div class="s-player ${bw?'win':''}"><div class="s-name">${escv(d.b.nombre)}</div><div class="s-pts">${num(d.b.puntos)}</div><div class="s-small">${escv(d.b.aciertos)} / ${escv(d.b.respondidas)} ACIERTOS</div>${bw?'<div class="s-winner">🏆 GANADOR</div>':''}</div>
-        </div>
-        <div class="s-result">${d.ganador?'🏆 '+escv(d.ganador):'EMPATE'}</div>
-        <div class="s-info"><span>${escv(d.cat||'Duelo')}</span><span>${escv(fecha(d.fecha))}</span></div>
-        <div class="s-challenge"><div>PRÓXIMO RETO</div><p>${msg}</p></div>`;
-    }else{
-      const estado=d.completo?'PARTIDA COMPLETADA':'PARTIDA FINALIZADA';
-      const puesto=d.puesto?Number(d.puesto):null;
-      let challenge='Sigue jugando para mejorar tu puntuación, tu racha y tu posición en el ranking.';
-      if(puesto===1) challenge='¡Estás en el <b>primer puesto</b>! Defiende tu posición y supera tu mejor marca.';
-      else if(puesto&&puesto>1) challenge='Tu próximo objetivo es alcanzar el <b>puesto #'+Math.max(1,puesto-1)+'</b> y superar tu mejor marca.';
-      if(Number(d.rachaSemanas)>0) challenge+=' Racha semanal: <b>'+escv(d.rachaSemanas)+'</b>.';
-      content=`
-        <div class="s-ribbon"><span>🏆</span> RESULTADO INDIVIDUAL</div>
-        <div class="s-player-name">${escv(d.jugador||'Jugador')}</div>
-        <div class="s-score">${num(d.puntos)}</div>
-        <div class="s-label">PUNTOS</div>
-        <div class="s-level">★ &nbsp; ${escv(d.nivel||'Jugador')}</div>
-        <div class="s-stats">
-          <div class="s-stat green"><div class="s-stat-num">${escv(d.aciertos||0)} / ${escv(d.total||0)}</div><div class="s-stat-label">ACIERTOS</div></div>
-          <div class="s-stat gold"><div class="s-stat-num">${escv(d.racha||0)}</div><div class="s-stat-label">MEJOR RACHA</div></div>
-          <div class="s-stat"><div class="s-stat-num">${d.puesto?'#'+escv(d.puesto):'—'}</div><div class="s-stat-label">PUESTO</div></div>
-        </div>
-        <div class="s-meta"><div><small>CATEGORÍA</small><strong>${escv(d.cat||'')}</strong></div><div><small>ESTADO</small><strong>${escv(estado)}</strong></div></div>
-        <div class="s-date">${escv(fecha(d.fecha))}</div>
-        <div class="s-status"><span>●</span> RESULTADO REGISTRADO</div>
-        <div class="s-challenge"><div>★ &nbsp; TU PRÓXIMO RETO</div><p>${challenge}</p></div>`;
+    const source=document.querySelector('.wrap');
+    if(!source) throw new Error('Contenido no disponible');
+
+    const stage=document.createElement('div');
+    stage.style.cssText=[
+      'position:fixed','left:-20000px','top:0',
+      'width:720px','height:1280px','overflow:hidden',
+      'background:#030914','z-index:-1'
+    ].join(';');
+
+    const clone=source.cloneNode(true);
+    clone.id='shareClone';
+    clone.style.cssText='width:720px;height:1280px;max-width:none;margin:0;padding:36px 16px 24px;position:relative;box-sizing:border-box;';
+
+    // La captura debe conservar el diseño móvil de la página, pero a resolución 720px.
+    const brand=clone.querySelector('.brand');
+    if(brand) brand.style.cssText='text-align:center;margin-bottom:18px;';
+    const small=clone.querySelector('.brand .small');
+    if(small) small.style.cssText='font-size:11px;font-weight:900;letter-spacing:4px;color:#8be6ff;text-transform:uppercase;';
+    const title=clone.querySelector('.brand h1');
+    if(title) title.style.cssText='margin:5px 0 0;font-size:34px;line-height:1.05;font-weight:950;letter-spacing:1px;text-transform:uppercase;text-shadow:0 0 22px rgba(39,199,255,.32);';
+    clone.querySelectorAll('.brand h1 span').forEach((el,i)=>{el.style.display='block';if(i===1)el.style.marginTop='2px';});
+
+    const card=clone.querySelector('.card');
+    if(card) card.style.cssText='position:relative;overflow:hidden;border:1px solid rgba(80,200,255,.38);border-radius:25px;background:linear-gradient(145deg,rgba(12,43,78,.96),rgba(3,14,29,.97));box-shadow:0 25px 80px rgba(0,0,0,.5),0 0 45px rgba(39,199,255,.08),inset 0 1px rgba(255,255,255,.08);padding:30px 18px;';
+
+    // Reemplazar SOLO el botón de compartir por información útil dentro de la imagen.
+    const share=clone.querySelector('.share');
+    if(share){
+      let info=document.createElement('div');
+      info.className='result-highlight';
+      if(d.tipo==='duelo'){
+        const msg=d.ganador
+          ? 'Próximo reto: defender la victoria de <b>'+esc(d.ganador)+'</b> en el siguiente duelo.'
+          : 'Próximo reto: desempatar y conseguir la victoria en la siguiente partida.';
+        info.innerHTML='<div class="rh-title">⚡ PRÓXIMO RETO</div><div class="rh-text">'+msg+'</div>';
+      }else{
+        const puesto=d.puesto?Number(d.puesto):null;
+        let msg='Sigue jugando para mejorar tu puntuación, tu racha y tu posición en el ranking.';
+        if(puesto===1) msg='¡Estás en el <b>primer puesto</b>! Mantén tu posición y supera tu mejor marca.';
+        else if(puesto&&puesto>1) msg='Tu próximo objetivo: alcanzar el <b>puesto #'+Math.max(1,puesto-1)+'</b> y superar tu mejor marca.';
+        if(Number(d.rachaSemanas)>0) msg+=' Racha semanal: <b>'+esc(d.rachaSemanas)+'</b>.';
+        info.innerHTML='<div class="rh-title">★ TU PRÓXIMO RETO</div><div class="rh-text">'+msg+'</div>';
+      }
+      share.replaceWith(info);
     }
 
-    stage.innerHTML=`<style>
-      #shareCanvasRoot{width:1080px;height:1920px;position:relative;overflow:hidden;color:#f7fbff;font-family:Inter,Segoe UI,Arial,sans-serif;background:#020817}
-      #shareCanvasRoot *{box-sizing:border-box}
-      .s-bg1{position:absolute;inset:0;background:radial-gradient(700px 520px at 50% 8%,rgba(25,130,220,.25),transparent 68%),radial-gradient(650px 700px at 50% 70%,rgba(0,75,150,.13),transparent 70%),linear-gradient(160deg,#071b35 0%,#030b19 52%,#020611 100%)}
-      .s-grid{position:absolute;inset:0;opacity:.32;background:linear-gradient(rgba(75,180,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(75,180,255,.045) 1px,transparent 1px);background-size:54px 54px;mask-image:linear-gradient(to bottom,black 0%,black 75%,transparent 100%)}
-      .s-glow{position:absolute;width:700px;height:500px;left:190px;top:0;background:radial-gradient(ellipse,rgba(39,199,255,.13),transparent 67%);filter:blur(18px)}
-      .s-frame{position:absolute;inset:24px;border:1px solid rgba(39,199,255,.45);border-radius:28px;box-shadow:0 0 35px rgba(39,199,255,.08),inset 0 0 60px rgba(39,199,255,.035)}
-      .s-frame:before,.s-frame:after{content:"";position:absolute;background:#27c7ff;box-shadow:0 0 14px #27c7ff}.s-frame:before{width:170px;height:2px;top:-1px;left:54px}.s-frame:after{width:110px;height:2px;bottom:-1px;right:54px}
-      .s-top{position:absolute;top:72px;left:55px;right:55px;text-align:center}.s-church{font-size:17px;font-weight:950;letter-spacing:6px;color:#8be6ff;text-transform:uppercase}.s-rule{height:1px;margin:18px 170px 22px;background:linear-gradient(90deg,transparent,rgba(255,209,102,.5),transparent)}
-      .s-title1,.s-title2{font-weight:1000;letter-spacing:1px;text-transform:uppercase;line-height:.95}.s-title1{font-size:65px;color:#f7fbff;text-shadow:0 0 22px rgba(255,255,255,.12)}.s-title2{font-size:67px;color:#ffd166;margin-top:11px;text-shadow:0 0 25px rgba(255,209,102,.2)}
-      .s-accent{position:absolute;top:295px;left:50%;transform:translateX(-50%);width:460px;height:2px;background:linear-gradient(90deg,transparent,#27c7ff,#ffd166,#27c7ff,transparent);box-shadow:0 0 20px rgba(39,199,255,.35)}
-      .s-card{position:absolute;left:42px;right:42px;top:345px;bottom:105px;border-radius:30px;border:1px solid rgba(71,190,255,.48);background:linear-gradient(150deg,rgba(9,34,62,.97),rgba(3,13,27,.985));box-shadow:0 24px 80px rgba(0,0,0,.48),0 0 40px rgba(39,199,255,.08),inset 0 1px rgba(255,255,255,.07);padding:42px 42px 38px;text-align:center}
-      .s-card:before{content:"";position:absolute;inset:14px;border-radius:22px;border:1px solid rgba(39,199,255,.08);pointer-events:none}.s-card:after{content:"";position:absolute;left:0;right:0;top:0;height:150px;background:linear-gradient(180deg,rgba(39,199,255,.06),transparent);pointer-events:none}
-      .s-ribbon{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:12px;color:#ffd166;font-size:23px;font-weight:1000;letter-spacing:4px;margin-bottom:34px}.s-ribbon:before,.s-ribbon:after{content:"";width:115px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,209,102,.55))}.s-ribbon:after{background:linear-gradient(90deg,rgba(255,209,102,.55),transparent)}
-      .s-player-name{position:relative;z-index:1;font-size:55px;font-weight:1000;letter-spacing:.5px;text-transform:uppercase}.s-score{position:relative;z-index:1;font-size:155px;line-height:.85;margin-top:18px;font-weight:1000;color:#ffd166;letter-spacing:-4px;text-shadow:0 0 32px rgba(255,209,102,.28)}.s-label{font-size:17px;font-weight:900;letter-spacing:7px;color:#9bb4ca;margin-top:7px}.s-level{display:inline-flex;position:relative;z-index:1;margin-top:28px;padding:13px 30px;border:1px solid rgba(39,199,255,.55);border-radius:999px;background:rgba(39,199,255,.07);color:#8be6ff;font-size:20px;font-weight:950;letter-spacing:1.5px}
-      .s-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}.s-stat{height:155px;border-radius:20px;border:1px solid rgba(100,175,220,.22);background:rgba(255,255,255,.025);display:flex;flex-direction:column;align-items:center;justify-content:center}.s-stat-num{font-size:48px;line-height:1;font-weight:1000;color:#f5fbff}.s-stat.green .s-stat-num{color:#39e39b}.s-stat.gold .s-stat-num{color:#ffd166}.s-stat-label{font-size:13px;font-weight:900;letter-spacing:2px;color:#9bb4ca;margin-top:12px}
-      .s-meta{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-top:30px}.s-meta>div{padding:17px 18px;text-align:left;border-radius:14px;background:rgba(1,10,22,.55);border:1px solid rgba(100,175,220,.16)}.s-meta small{display:block;font-size:10px;letter-spacing:2px;color:#718ba2;font-weight:900;margin-bottom:6px}.s-meta strong{display:block;font-size:17px;color:#8be6ff;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.s-meta>div:last-child strong{color:#eaf5fb}.s-date{display:inline-block;margin-top:18px;padding:12px 22px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(100,175,220,.15);font-size:15px;font-weight:850;color:#d8e8f3}.s-status{margin:24px auto 0;padding:16px 24px;border-radius:14px;background:rgba(57,227,155,.055);border:1px solid rgba(57,227,155,.42);color:#39e39b;font-size:19px;font-weight:1000;letter-spacing:2px}.s-status span{font-size:14px;margin-right:5px}
-      .s-challenge{margin:27px auto 0;padding:20px 25px;border-radius:16px;background:linear-gradient(135deg,rgba(39,199,255,.07),rgba(255,209,102,.045));border:1px solid rgba(39,199,255,.20);max-width:850px}.s-challenge div{font-size:12px;font-weight:1000;letter-spacing:2.5px;color:#8be6ff}.s-challenge p{font-size:15px;line-height:1.4;font-weight:750;color:#d9e8f2;margin:9px 0 0}.s-challenge b{color:#ffd166}
-      .s-footer{position:absolute;bottom:55px;left:50px;right:50px;text-align:center;color:#607a92;font-size:10px;font-weight:800;letter-spacing:2px}
-      .s-cat{font-size:18px;color:#8be6ff;font-weight:900;letter-spacing:2px}.s-duel{display:grid;grid-template-columns:1fr 80px 1fr;gap:16px;align-items:center;margin-top:75px}.s-player{padding:32px 20px;border-radius:20px;border:1px solid rgba(39,199,255,.25);background:rgba(255,255,255,.025)}.s-player.win{border-color:rgba(255,209,102,.65);box-shadow:0 0 28px rgba(255,209,102,.10)}.s-name{font-size:30px;font-weight:1000;text-transform:uppercase}.s-pts{font-size:76px;font-weight:1000;color:#ffd166;margin:10px 0}.s-small{font-size:13px;color:#9bb4ca;font-weight:850}.s-winner{margin-top:13px;color:#ffd166;font-size:12px;font-weight:1000;letter-spacing:2px}.s-vs{font-size:30px;font-weight:1000;color:#27c7ff;text-shadow:0 0 18px rgba(39,199,255,.65)}.s-result{margin-top:45px;font-size:28px;font-weight:1000;color:#ffd166}.s-info{display:flex;justify-content:center;gap:12px;margin-top:35px}.s-info span{padding:12px 18px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(100,175,220,.16);font-size:14px;font-weight:850}.s-challenge{position:relative}
-    </style>
-    <div id="shareCanvasRoot">
-      <div class="s-bg1"></div><div class="s-grid"></div><div class="s-glow"></div><div class="s-frame"></div>
-      <div class="s-top"><div class="s-church">${escv(d.iglesia||'RESULTADO DE PARTIDA')}</div><div class="s-rule"></div><div class="s-title1">${title1}</div><div class="s-title2">${title2}</div></div>
-      <div class="s-accent"></div>
-      <section class="s-card">${content}</section>
-      <div class="s-footer">RESULTADO GENERADO POR LA MÁQUINA ARCADE · DECONOCIMIENTO BÍBLICO</div>
-    </div>`;
+    // La información de la captura usa EXACTAMENTE las mismas reglas visuales
+    // de la página, sin redibujar la tarjeta con otra plantilla.
+    const rh=clone.querySelector('.result-highlight');
+    if(rh){
+      rh.style.cssText='margin:25px auto 0;max-width:720px;padding:17px 22px;border:1px solid rgba(39,199,255,.28);border-radius:15px;background:linear-gradient(135deg,rgba(39,199,255,.07),rgba(255,209,102,.045));box-shadow:inset 0 1px rgba(255,255,255,.04);';
+      const rt=rh.querySelector('.rh-title');
+      if(rt) rt.style.cssText='font-size:11px;font-weight:950;letter-spacing:2.2px;text-transform:uppercase;color:#8be6ff;margin-bottom:7px;';
+      const rx=rh.querySelector('.rh-text');
+      if(rx) rx.style.cssText='font-size:13px;line-height:1.45;font-weight:800;color:#d9ebf7;';
+      rh.querySelectorAll('b').forEach(b=>b.style.color='#ffd166');
+    }
+
+    // La tarjeta debe ocupar la misma proporción vertical que en la página.
+    const stats=clone.querySelector('.stats');
+    if(stats) stats.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:4px 0 22px;';
+    clone.querySelectorAll('.stat').forEach(el=>el.style.padding='13px 5px');
+    clone.querySelectorAll('.stat .n').forEach(el=>el.style.fontSize='34px');
+    clone.querySelectorAll('.stat .l').forEach(el=>el.style.fontSize='10px');
+
+    const footer=clone.querySelector('.footer');
+    if(footer) footer.style.cssText='text-align:center;margin-top:17px;color:#718ba2;font-size:10px;letter-spacing:1px;';
+
+    stage.appendChild(clone);
     document.body.appendChild(stage);
     if(document.fonts&&document.fonts.ready) await document.fonts.ready;
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    const rendered=await html2canvas(stage.querySelector('#shareCanvasRoot'),{width:1080,height:1920,windowWidth:1080,windowHeight:1920,scale:1,backgroundColor:'#020817',useCORS:true,allowTaint:false,logging:false,scrollX:0,scrollY:0});
+
+    const rendered=await html2canvas(clone,{
+      width:720,height:1280,
+      windowWidth:720,windowHeight:1280,
+      scale:1.5,
+      backgroundColor:'#030914',
+      useCORS:true,allowTaint:false,logging:false,
+      scrollX:0,scrollY:0
+    });
     stage.remove();
-    return rendered;
+
+    // 1080x1920 = 9:16 exacto. No se estira el contenido de forma distinta;
+    // simplemente se exporta a mayor resolución.
+    const out=document.createElement('canvas');
+    out.width=1080;out.height=1920;
+    const ctx=out.getContext('2d');
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(rendered,0,0,1080,1920);
+    return out;
   }
   async function share(){
     try{
