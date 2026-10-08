@@ -81,62 +81,68 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
   async function imageCanvas(d){
     /*
-      La imagen compartida se obtiene de la MISMA interfaz HTML que ve el usuario.
-      No se redibuja a mano en canvas: así tipografías, tarjetas, bordes, espacios,
-      colores y proporciones quedan iguales a la página.
+      Capturamos la MISMA composición responsive que ve el teléfono.
+      La página pública usa un lienzo 9:16 para compartir, pero primero se
+      renderiza a 720x1280 y después se escala exactamente a 1080x1920.
+      Así no aparecen bandas enormes ni se deforma la tarjeta.
     */
+    if(!window.html2canvas) throw new Error('Capturador no disponible');
     const source=document.querySelector('.wrap');
-    if(!source || !window.html2canvas) throw new Error('Capturador no disponible');
-
-    const clone=source.cloneNode(true);
-    clone.classList.add('share-capture');
-    clone.querySelectorAll('.share').forEach(el=>el.remove());
-    clone.querySelectorAll('#share').forEach(el=>el.remove());
-    clone.querySelectorAll('.footer').forEach(el=>el.style.marginTop='14px');
+    if(!source) throw new Error('Tarjeta no disponible');
 
     const stage=document.createElement('div');
     stage.id='shareStage';
-    stage.style.cssText='position:fixed;left:-20000px;top:0;width:1080px;height:1920px;overflow:hidden;background:#030914;z-index:-1;';
+    stage.style.cssText='position:fixed;left:-20000px;top:0;width:720px;height:1280px;overflow:hidden;background:#030914;z-index:-1;';
+
+    const clone=source.cloneNode(true);
+    clone.classList.add('share-capture');
+    clone.style.cssText='width:100%;max-width:none;height:1280px;min-height:1280px;margin:0;padding:22px 8px 24px;box-sizing:border-box;display:flex;flex-direction:column;';
+    clone.querySelectorAll('.share').forEach(el=>el.remove());
+    clone.querySelectorAll('.footer').forEach(el=>{el.style.marginTop='14px';el.style.flex='0 0 auto';});
+
+    const brand=clone.querySelector('.brand');
+    if(brand){ brand.style.marginBottom='14px'; }
+    const title=clone.querySelector('.brand h1');
+    if(title){ title.style.fontSize='32px'; }
+    const small=clone.querySelector('.brand .small');
+    if(small){ small.style.fontSize='9px';small.style.letterSpacing='3px'; }
+
+    const card=clone.querySelector('.card');
+    if(card){
+      card.style.flex='1 1 auto';
+      card.style.minHeight='0';
+      card.style.padding='22px 15px';
+      card.style.margin='0';
+    }
+
     stage.appendChild(clone);
     document.body.appendChild(stage);
 
-    // El diseño de la web se renderiza a 1080 px, manteniendo exactamente su CSS.
-    clone.style.width='1080px';
-    clone.style.maxWidth='none';
-    clone.style.padding='46px 0 50px';
-    clone.style.margin='0 auto';
-    clone.style.transform='none';
-    clone.style.boxSizing='border-box';
-
-    // Asegurar que la tarjeta tenga la misma composición, sin botón de compartir.
-    const card=clone.querySelector('.card');
-    if(card){ card.style.marginTop='0'; }
-
-    // Esperar fuentes y pintura del navegador.
     if(document.fonts && document.fonts.ready) await document.fonts.ready;
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 
     const rendered=await html2canvas(clone,{
-      width:1080,
-      height:Math.min(1920,Math.max(1,clone.scrollHeight)),
-      windowWidth:1080,
-      windowHeight:1920,
-      scale:1,
+      width:720,
+      height:1280,
+      windowWidth:720,
+      windowHeight:1280,
+      scale:1.5,
       backgroundColor:'#030914',
       useCORS:true,
       allowTaint:false,
-      logging:false
+      logging:false,
+      scrollX:0,
+      scrollY:0
     });
 
-    document.body.removeChild(stage);
+    stage.remove();
 
-    // El resultado final siempre es 1080x1920 (9:16). Se centra la captura sin deformarla.
-    if(rendered.width===1080 && rendered.height===1920) return rendered;
-    const out=document.createElement('canvas'); out.width=1080; out.height=1920;
-    const ox=out.getContext('2d'); ox.fillStyle='#030914'; ox.fillRect(0,0,1080,1920);
-    const scale=Math.min(1080/rendered.width,1920/rendered.height);
-    const dw=rendered.width*scale, dh=rendered.height*scale;
-    ox.drawImage(rendered,(1080-dw)/2,(1920-dh)/2,dw,dh);
+    const out=document.createElement('canvas');
+    out.width=1080;out.height=1920;
+    const ctx=out.getContext('2d');
+    ctx.imageSmoothingEnabled=true;
+    ctx.fillStyle='#030914';ctx.fillRect(0,0,1080,1920);
+    ctx.drawImage(rendered,0,0,1080,1920);
     return out;
   }
   async function share(){
