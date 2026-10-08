@@ -39,6 +39,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .footer{text-align:center;margin-top:17px;color:#718ba2;font-size:10px;letter-spacing:1px}.error{text-align:center;padding:45px 10px}.error h2{margin:0 0 10px;color:var(--rojo)}.error p{color:var(--tenue)}
 @media(max-width:620px){.wrap{width:min(100% - 16px,920px);padding-top:18px}.card{padding:21px 15px;border-radius:20px}.stats{gap:7px}.stat{padding:13px 5px}.versus{grid-template-columns:1fr;gap:8px}.vs{font-size:16px}.player-card .pts{font-size:31px}.share .btn{width:100%}.brand h1{font-size:28px}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 <main class="wrap">
@@ -78,51 +79,65 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     }catch(e){console.error(e);return null}
   }
   function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
-  function imageCanvas(d){
-    // Imagen vertical 9:16, diseñada para historias/WhatsApp/Instagram.
-    const duel=d.tipo==='duelo', W=1080, H=1920, c=document.createElement('canvas');
-    c.width=W;c.height=H;const x=c.getContext('2d');
-    const bg=x.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0a2a52');bg.addColorStop(.48,'#061a33');bg.addColorStop(1,'#030914');x.fillStyle=bg;x.fillRect(0,0,W,H);
-    const glow=x.createRadialGradient(W/2,260,20,W/2,260,760);glow.addColorStop(0,'rgba(39,199,255,.25)');glow.addColorStop(1,'rgba(39,199,255,0)');x.fillStyle=glow;x.fillRect(0,0,W,700);
-    // rejilla tenue, como la página
-    x.strokeStyle='rgba(100,190,255,.045)';x.lineWidth=1;
-    for(let y=0;y<H;y+=56){x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke()}
-    for(let xx=0;xx<W;xx+=56){x.beginPath();x.moveTo(xx,0);x.lineTo(xx,H);x.stroke()}
-    x.strokeStyle='rgba(39,199,255,.55)';x.lineWidth=3;x.strokeRect(30,30,W-60,H-60);
-    const rr=(px,py,pw,ph,r,fill,stroke)=>{x.beginPath();x.roundRect(px,py,pw,ph,r);x.fillStyle=fill;x.fill();if(stroke){x.strokeStyle=stroke;x.lineWidth=2;x.stroke()}};
-    const txt=(v,px,py,size,color,weight='800',align='center')=>{x.font=weight+' '+size+'px Inter,Segoe UI,Arial,sans-serif';x.fillStyle=color;x.textAlign=align;x.textBaseline='middle';x.fillText(String(v),px,py)};
-    const app=String(d.titulo||'DECOMNOCIMIENTO|BÍBLICO');
-    const parts=app.split('|').map(v=>v.trim()).filter(Boolean);
-    txt(parts[0]||'DECOMNOCIMIENTO',W/2,92,42,'#8be6ff','900');
-    txt(parts[1]||'BÍBLICO',W/2,142,34,'#f5fbff','900');
-    txt(d.iglesia||'',W/2,188,22,'#9bb4ca','700');
-    // Card principal: misma proporción visual que la página móvil.
-    const cx=45, cy=245, cw=990, ch=1500;
-    rr(cx,cy,cw,ch,30,'rgba(5,22,43,.86)','rgba(80,200,255,.38)');
-    if(!duel){
-      txt('🏆  RESULTADO INDIVIDUAL',W/2,305,22,'#ffd166','900');
-      txt(d.jugador||'Jugador',W/2,395,39,'#f5fbff','900');
-      txt(num(d.puntos),W/2,520,118,'#ffd166','1000');
-      txt('PUNTOS',W/2,588,19,'#9bb4ca','900');
-      rr(360,635,360,66,34,'rgba(39,199,255,.08)','rgba(39,199,255,.35)');
-      txt('★ '+(d.nivel||'Jugador'),W/2,668,18,'#8be6ff','900');
-      const boxes=[[''+(d.aciertos||0)+' / '+(d.total||0),'ACIERTOS','#39e39b'],[''+(d.racha||0),'MEJOR RACHA','#ffd166'],[d.puesto?'#'+d.puesto:'—','PUESTO','#8be6ff']];
-      boxes.forEach((b,i)=>{const bx=78+i*315;rr(bx,760,285,150,18,'rgba(255,255,255,.045)','rgba(140,200,235,.18)');txt(b[0],bx+142,820,39,b[2],'950');txt(b[1],bx+142,872,13,'#9bb4ca','900')});
-      if(d.cat) { rr(115,955,850,62,13,'rgba(0,0,0,.20)','rgba(140,190,230,.15)');txt('Categoría: '+d.cat,W/2,986,17,'#d9ebf7','800'); }
-      rr(235,1050,610,62,13,'rgba(0,0,0,.20)','rgba(140,190,230,.15)');txt(d.completo?'PARTIDA COMPLETADA':'PARTIDA FINALIZADA',W/2,1081,17,'#39e39b','900');
-      rr(270,1145,540,62,13,'rgba(0,0,0,.20)','rgba(140,190,230,.15)');txt(fecha(d.fecha),W/2,1176,16,'#9bb4ca','800');
-      txt('●  RESULTADO REGISTRADO',W/2,1280,18,'#39e39b','900');
-    }else{
-      txt('⚡  DUELO BÍBLICO',W/2,310,22,'#ffd166','900');
-      if(d.cat){rr(350,350,380,60,30,'rgba(39,199,255,.08)','rgba(39,199,255,.35)');txt(d.cat,W/2,380,17,'#8be6ff','900')}
-      const ps=[d.a,d.b]; ps.forEach((p,i)=>{const by=460+i*365;rr(105,by,870,315,24,'rgba(255,255,255,.045)',d.gana===i?'rgba(255,209,102,.7)':'rgba(140,200,235,.18)');txt(p.nombre,540,by+55,31,'#f5fbff','900');txt(num(p.puntos),540,by+135,70,'#ffd166','1000');txt((p.aciertos||0)+' / '+(p.respondidas||0)+' aciertos',540,by+205,17,'#9bb4ca','800');txt('RACHA '+(p.racha||0),540,by+255,15,'#8be6ff','900');if(d.gana===i)txt('🏆  GANADOR',540,by+292,16,'#ffd166','900')});
-      txt('VS',W/2,830,34,'#27c7ff','1000');
-      txt(d.ganador?'GANADOR: '+d.ganador:'EMPATE',W/2,1230,27,d.ganador?'#ffd166':'#8be6ff','900');
-      txt('●  RESULTADO REGISTRADO',W/2,1320,18,'#39e39b','900');
-      txt(fecha(d.fecha),W/2,1380,16,'#9bb4ca','800');
-    }
-    txt('DECONOCIMIENTO BÍBLICO · RESULTADO COMPARTIDO',W/2,1840,15,'#718ba2','800');
-    return c;
+  async function imageCanvas(d){
+    /*
+      La imagen compartida se obtiene de la MISMA interfaz HTML que ve el usuario.
+      No se redibuja a mano en canvas: así tipografías, tarjetas, bordes, espacios,
+      colores y proporciones quedan iguales a la página.
+    */
+    const source=document.querySelector('.wrap');
+    if(!source || !window.html2canvas) throw new Error('Capturador no disponible');
+
+    const clone=source.cloneNode(true);
+    clone.classList.add('share-capture');
+    clone.querySelectorAll('.share').forEach(el=>el.remove());
+    clone.querySelectorAll('#share').forEach(el=>el.remove());
+    clone.querySelectorAll('.footer').forEach(el=>el.style.marginTop='14px');
+
+    const stage=document.createElement('div');
+    stage.id='shareStage';
+    stage.style.cssText='position:fixed;left:-20000px;top:0;width:1080px;height:1920px;overflow:hidden;background:#030914;z-index:-1;';
+    stage.appendChild(clone);
+    document.body.appendChild(stage);
+
+    // El diseño de la web se renderiza a 1080 px, manteniendo exactamente su CSS.
+    clone.style.width='1080px';
+    clone.style.maxWidth='none';
+    clone.style.padding='46px 0 50px';
+    clone.style.margin='0 auto';
+    clone.style.transform='none';
+    clone.style.boxSizing='border-box';
+
+    // Asegurar que la tarjeta tenga la misma composición, sin botón de compartir.
+    const card=clone.querySelector('.card');
+    if(card){ card.style.marginTop='0'; }
+
+    // Esperar fuentes y pintura del navegador.
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+    const rendered=await html2canvas(clone,{
+      width:1080,
+      height:Math.min(1920,Math.max(1,clone.scrollHeight)),
+      windowWidth:1080,
+      windowHeight:1920,
+      scale:1,
+      backgroundColor:'#030914',
+      useCORS:true,
+      allowTaint:false,
+      logging:false
+    });
+
+    document.body.removeChild(stage);
+
+    // El resultado final siempre es 1080x1920 (9:16). Se centra la captura sin deformarla.
+    if(rendered.width===1080 && rendered.height===1920) return rendered;
+    const out=document.createElement('canvas'); out.width=1080; out.height=1920;
+    const ox=out.getContext('2d'); ox.fillStyle='#030914'; ox.fillRect(0,0,1080,1920);
+    const scale=Math.min(1080/rendered.width,1920/rendered.height);
+    const dw=rendered.width*scale, dh=rendered.height*scale;
+    ox.drawImage(rendered,(1080-dw)/2,(1920-dh)/2,dw,dh);
+    return out;
   }
   async function share(){
     const c=imageCanvas(d), blob=await new Promise(r=>c.toBlob(r,'image/png',.95));
