@@ -81,10 +81,9 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
   async function imageCanvas(d){
     /*
-      Capturamos la MISMA composición responsive que ve el teléfono.
-      La página pública usa un lienzo 9:16 para compartir, pero primero se
-      renderiza a 720x1280 y después se escala exactamente a 1080x1920.
-      Así no aparecen bandas enormes ni se deforma la tarjeta.
+      La imagen compartida es un lienzo REAL 9:16. No comprimimos el contenido
+      en la parte superior: durante la captura distribuimos los bloques dentro
+      de toda la altura disponible, manteniendo el mismo diseño y tipografías.
     */
     if(!window.html2canvas) throw new Error('Capturador no disponible');
     const source=document.querySelector('.wrap');
@@ -96,23 +95,92 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 
     const clone=source.cloneNode(true);
     clone.classList.add('share-capture');
-    clone.style.cssText='width:100%;max-width:none;height:1280px;min-height:1280px;margin:0;padding:22px 8px 24px;box-sizing:border-box;display:flex;flex-direction:column;';
+    clone.style.cssText='width:720px;max-width:none;height:1280px;min-height:1280px;margin:0;padding:34px 8px 26px;box-sizing:border-box;display:flex;flex-direction:column;';
+
+    // La imagen no incluye el botón de compartir.
     clone.querySelectorAll('.share').forEach(el=>el.remove());
-    clone.querySelectorAll('.footer').forEach(el=>{el.style.marginTop='14px';el.style.flex='0 0 auto';});
 
     const brand=clone.querySelector('.brand');
-    if(brand){ brand.style.marginBottom='14px'; }
+    if(brand){
+      brand.style.marginBottom='22px';
+      brand.style.flex='0 0 auto';
+    }
     const title=clone.querySelector('.brand h1');
-    if(title){ title.style.fontSize='32px'; }
+    if(title){title.style.fontSize='34px';title.style.lineHeight='1.08';}
     const small=clone.querySelector('.brand .small');
-    if(small){ small.style.fontSize='9px';small.style.letterSpacing='3px'; }
+    if(small){small.style.fontSize='10px';small.style.letterSpacing='3.5px';}
+
+    const footer=clone.querySelector('.footer');
+    if(footer){
+      footer.style.marginTop='20px';
+      footer.style.flex='0 0 auto';
+      footer.style.fontSize='9px';
+    }
 
     const card=clone.querySelector('.card');
     if(card){
       card.style.flex='1 1 auto';
       card.style.minHeight='0';
-      card.style.padding='22px 15px';
+      card.style.height='auto';
       card.style.margin='0';
+      card.style.padding='30px 18px 42px';
+      card.style.display='flex';
+      card.style.flexDirection='column';
+      card.style.justifyContent='space-between';
+      card.style.gap='0';
+
+      // Cada bloque conserva su tamaño, pero el espacio libre se reparte
+      // entre ellos para que la tarjeta no quede recogida arriba.
+      const children=[...card.children];
+      children.forEach(el=>{
+        el.style.flexShrink='0';
+        el.style.marginLeft='0';
+        el.style.marginRight='0';
+      });
+
+      const ribbon=card.querySelector('.ribbon');
+      if(ribbon){ribbon.style.marginBottom='8px';}
+
+      const hero=card.querySelector('.hero');
+      if(hero){
+        hero.style.flex='1 1 auto';
+        hero.style.minHeight='360px';
+        hero.style.display='flex';
+        hero.style.flexDirection='column';
+        hero.style.justifyContent='center';
+        hero.style.alignItems='center';
+        hero.style.padding='24px 0';
+      }
+
+      const stats=card.querySelector('.stats');
+      if(stats){stats.style.margin='8px 0';}
+
+      const meta=card.querySelector('.meta');
+      if(meta){meta.style.margin='8px 0';}
+
+      const status=card.querySelector('.status');
+      if(status){status.style.margin='8px 0 6px';}
+
+      // En duelo hay dos bloques .hero; repartimos también el espacio entre
+      // encabezado, enfrentamiento, ganador y metadatos.
+      const versus=card.querySelector('.versus');
+      if(versus){
+        versus.style.flex='1 1 auto';
+        versus.style.minHeight='420px';
+        versus.style.alignContent='center';
+      }
+      const duelHeroes=card.querySelectorAll('.hero');
+      if(duelHeroes.length>1){
+        duelHeroes.forEach((h,i)=>{
+          h.style.flex=i===0?'0 0 auto':'0 0 auto';
+          h.style.minHeight='0';
+          h.style.display='flex';
+          h.style.justifyContent='center';
+          h.style.alignItems='center';
+        });
+        duelHeroes[0].style.padding='8px 0 12px';
+        duelHeroes[1].style.padding='18px 0 12px';
+      }
     }
 
     stage.appendChild(clone);
