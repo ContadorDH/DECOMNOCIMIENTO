@@ -82,42 +82,32 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
   async function imageCanvas(d){
     /*
-      COMPARTIR = MISMO DISEÑO DE LA PÁGINA.
-      Se toma la misma estructura, colores, tipografías, tamaños y proporciones
-      de la página visible. Solo se sustituye el botón por información relevante.
+      La imagen compartida es una representación 1:1 de la página móvil.
+      Se usa el mismo HTML/CSS de .wrap; solo se reemplaza el botón por
+      información relevante y luego se escala proporcionalmente a 1080x1920.
     */
     if(!window.html2canvas) throw new Error('Capturador no disponible');
 
     const source=document.querySelector('.wrap');
     if(!source) throw new Error('Contenido no disponible');
 
+    // El sitio se ve en móvil con las reglas @media(max-width:620px).
+    // Renderizamos a 390 CSS px (viewport móvil real) para activar exactamente
+    // esas reglas y después ampliamos proporcionalmente a 1080x1920.
+    const W=390;
+    const H=Math.round(W*16/9); // 693.333...
     const stage=document.createElement('div');
-    stage.style.cssText=[
-      'position:fixed','left:-20000px','top:0',
-      'width:720px','height:1280px','overflow:hidden',
-      'background:#030914','z-index:-1'
-    ].join(';');
+    stage.style.cssText='position:fixed;left:-20000px;top:0;width:'+W+'px;height:'+H+'px;overflow:hidden;background:#030914;z-index:-1;';
 
     const clone=source.cloneNode(true);
     clone.id='shareClone';
-    clone.style.cssText='width:720px;height:1280px;max-width:none;margin:0;padding:36px 16px 24px;position:relative;box-sizing:border-box;';
+    clone.style.cssText='width:100%;max-width:none;margin:0;padding:18px 8px 24px;position:relative;box-sizing:border-box;';
 
-    // La captura debe conservar el diseño móvil de la página, pero a resolución 720px.
-    const brand=clone.querySelector('.brand');
-    if(brand) brand.style.cssText='text-align:center;margin-bottom:18px;';
-    const small=clone.querySelector('.brand .small');
-    if(small) small.style.cssText='font-size:11px;font-weight:900;letter-spacing:4px;color:#8be6ff;text-transform:uppercase;';
-    const title=clone.querySelector('.brand h1');
-    if(title) title.style.cssText='margin:5px 0 0;font-size:34px;line-height:1.05;font-weight:950;letter-spacing:1px;text-transform:uppercase;text-shadow:0 0 22px rgba(39,199,255,.32);';
-    clone.querySelectorAll('.brand h1 span').forEach((el,i)=>{el.style.display='block';if(i===1)el.style.marginTop='2px';});
-
-    const card=clone.querySelector('.card');
-    if(card) card.style.cssText='position:relative;overflow:hidden;border:1px solid rgba(80,200,255,.38);border-radius:25px;background:linear-gradient(145deg,rgba(12,43,78,.96),rgba(3,14,29,.97));box-shadow:0 25px 80px rgba(0,0,0,.5),0 0 45px rgba(39,199,255,.08),inset 0 1px rgba(255,255,255,.08);padding:30px 18px;';
-
-    // Reemplazar SOLO el botón de compartir por información útil dentro de la imagen.
+    // Elimina cualquier elemento interactivo de la captura y conserva su espacio
+    // reemplazándolo por el bloque informativo que pediste.
     const share=clone.querySelector('.share');
     if(share){
-      let info=document.createElement('div');
+      const info=document.createElement('div');
       info.className='result-highlight';
       if(d.tipo==='duelo'){
         const msg=d.ganador
@@ -135,53 +125,54 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
       share.replaceWith(info);
     }
 
-    // La información de la captura usa EXACTAMENTE las mismas reglas visuales
-    // de la página, sin redibujar la tarjeta con otra plantilla.
-    const rh=clone.querySelector('.result-highlight');
-    if(rh){
-      rh.style.cssText='margin:25px auto 0;max-width:720px;padding:17px 22px;border:1px solid rgba(39,199,255,.28);border-radius:15px;background:linear-gradient(135deg,rgba(39,199,255,.07),rgba(255,209,102,.045));box-shadow:inset 0 1px rgba(255,255,255,.04);';
-      const rt=rh.querySelector('.rh-title');
-      if(rt) rt.style.cssText='font-size:11px;font-weight:950;letter-spacing:2.2px;text-transform:uppercase;color:#8be6ff;margin-bottom:7px;';
-      const rx=rh.querySelector('.rh-text');
-      if(rx) rx.style.cssText='font-size:13px;line-height:1.45;font-weight:800;color:#d9ebf7;';
-      rh.querySelectorAll('b').forEach(b=>b.style.color='#ffd166');
-    }
-
-    // La tarjeta debe ocupar la misma proporción vertical que en la página.
-    const stats=clone.querySelector('.stats');
-    if(stats) stats.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:4px 0 22px;';
-    clone.querySelectorAll('.stat').forEach(el=>el.style.padding='13px 5px');
-    clone.querySelectorAll('.stat .n').forEach(el=>el.style.fontSize='34px');
-    clone.querySelectorAll('.stat .l').forEach(el=>el.style.fontSize='10px');
-
-    const footer=clone.querySelector('.footer');
-    if(footer) footer.style.cssText='text-align:center;margin-top:17px;color:#718ba2;font-size:10px;letter-spacing:1px;';
-
     stage.appendChild(clone);
     document.body.appendChild(stage);
     if(document.fonts&&document.fonts.ready) await document.fonts.ready;
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 
+    // Medimos el contenido real. No forzamos la tarjeta a 1920 px ni la centramos:
+    // así no aparecen los grandes espacios vacíos de las versiones anteriores.
+    const natural=Math.ceil(clone.scrollHeight);
+    const renderH=Math.max(H,natural);
+    stage.style.height=renderH+'px';
+    clone.style.height=renderH+'px';
+
     const rendered=await html2canvas(clone,{
-      width:720,height:1280,
-      windowWidth:720,windowHeight:1280,
-      scale:1.5,
+      width:W,
+      height:renderH,
+      windowWidth:W,
+      windowHeight:renderH,
+      scale:3,
       backgroundColor:'#030914',
-      useCORS:true,allowTaint:false,logging:false,
-      scrollX:0,scrollY:0
+      useCORS:true,
+      allowTaint:false,
+      logging:false,
+      scrollX:0,
+      scrollY:0
     });
     stage.remove();
 
-    // 1080x1920 = 9:16 exacto. No se estira el contenido de forma distinta;
-    // simplemente se exporta a mayor resolución.
+    // Recorta proporcionalmente el diseño completo a 9:16, sin deformarlo.
     const out=document.createElement('canvas');
-    out.width=1080;out.height=1920;
+    out.width=1080; out.height=1920;
     const ctx=out.getContext('2d');
     ctx.imageSmoothingEnabled=true;
-    ctx.drawImage(rendered,0,0,1080,1920);
+    ctx.imageSmoothingQuality='high';
+    const srcRatio=rendered.width/rendered.height;
+    const dstRatio=1080/1920;
+    let sx=0,sy=0,sw=rendered.width,sh=rendered.height;
+    if(srcRatio>dstRatio){
+      sw=Math.round(rendered.height*dstRatio);
+      sx=Math.round((rendered.width-sw)/2);
+    }else if(srcRatio<dstRatio){
+      sh=Math.round(rendered.width/dstRatio);
+      sy=Math.round((rendered.height-sh)/2);
+    }
+    ctx.drawImage(rendered,sx,sy,sw,sh,0,0,1080,1920);
     return out;
   }
-  async function share(){
+  
+async function share(){
     try{
       const c=await imageCanvas(d);
       const blob=await new Promise(r=>c.toBlob(r,'image/png',.95));
