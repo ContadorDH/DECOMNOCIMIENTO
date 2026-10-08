@@ -61,7 +61,20 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
       if(!raw) return null;
       const b64=raw.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-raw.length%4)%4);
       const bin=atob(b64), bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
-      return JSON.parse(new TextDecoder().decode(bytes));
+      const x=JSON.parse(new TextDecoder().decode(bytes));
+      // Formato compacto actual del arcade.
+      if(x && x.v===1 && typeof x.y==='number'){
+        if(x.y===1){
+          return {v:1,tipo:'duelo',fecha:x.t,titulo:'Deconocimiento Bíblico',cat:x.c||'',modo:x.m||'',
+            a:{nombre:x.a?.[0]||'Jugador 1',puntos:x.a?.[1]||0,aciertos:x.a?.[2]||0,respondidas:x.a?.[3]||0,racha:x.a?.[4]||0},
+            b:{nombre:x.b?.[0]||'Jugador 2',puntos:x.b?.[1]||0,aciertos:x.b?.[2]||0,respondidas:x.b?.[3]||0,racha:x.b?.[4]||0},
+            ganador:x.g||'',gana:(typeof x.w==='number'&&x.w>=0)?x.w:null,victorias:x.vics==null?null:x.vics};
+        }
+        return {v:1,tipo:'individual',fecha:x.t,titulo:'Deconocimiento Bíblico',jugador:x.n||'Jugador',cat:x.c||'',
+          puntos:x.p||0,aciertos:x.a||0,total:x.q||0,racha:x.r||0,rachaSemanas:x.s||0,puesto:x.u||null,nivel:x.l||'',
+          completo:x.f===1,sinCreditos:x.f===2,continuados:x.k||0};
+      }
+      return x;
     }catch(e){console.error(e);return null}
   }
   function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
