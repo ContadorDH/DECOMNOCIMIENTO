@@ -43,8 +43,8 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 <body>
 <main class="wrap">
   <header class="brand">
-    <div class="small">Resultado de partida</div>
-    <h1>DECONOCIMIENTO BÍBLICO</h1>
+    <div class="small" id="brandSmall">Resultado de partida</div>
+    <h1 id="brandTitle">DECONOCIMIENTO BÍBLICO</h1>
   </header>
   <section id="resultado" class="card"><div class="error"><h2>Cargando resultado…</h2><p>Preparando tu tarjeta de partida.</p></div></section>
   <div class="footer">RESULTADO GENERADO POR LA MÁQUINA ARCADE · DECONOCIMIENTO BÍBLICO</div>
@@ -63,14 +63,14 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
       const bin=atob(b64), bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
       const x=JSON.parse(new TextDecoder().decode(bytes));
       // Formato compacto actual del arcade.
-      if(x && x.v===1 && typeof x.y==='number'){
+      if(x && (x.v===1 || x.v===2) && typeof x.y==='number'){
         if(x.y===1){
-          return {v:1,tipo:'duelo',fecha:x.t,titulo:'Deconocimiento Bíblico',cat:x.c||'',modo:x.m||'',
+          return {v:x.v,tipo:'duelo',fecha:x.t,titulo:x.i||'Deconocimiento Bíblico',iglesia:x.h||'',cat:x.c||'',modo:x.m||'',
             a:{nombre:x.a?.[0]||'Jugador 1',puntos:x.a?.[1]||0,aciertos:x.a?.[2]||0,respondidas:x.a?.[3]||0,racha:x.a?.[4]||0},
             b:{nombre:x.b?.[0]||'Jugador 2',puntos:x.b?.[1]||0,aciertos:x.b?.[2]||0,respondidas:x.b?.[3]||0,racha:x.b?.[4]||0},
             ganador:x.g||'',gana:(typeof x.w==='number'&&x.w>=0)?x.w:null,victorias:x.vics==null?null:x.vics};
         }
-        return {v:1,tipo:'individual',fecha:x.t,titulo:'Deconocimiento Bíblico',jugador:x.n||'Jugador',cat:x.c||'',
+        return {v:x.v,tipo:'individual',fecha:x.t,titulo:x.i||'Deconocimiento Bíblico',iglesia:x.h||'',jugador:x.n||'Jugador',cat:x.c||'',
           puntos:x.p||0,aciertos:x.a||0,total:x.q||0,racha:x.r||0,rachaSemanas:x.s||0,puesto:x.u||null,nivel:x.l||'',
           completo:x.f===1,sinCreditos:x.f===2,continuados:x.k||0};
       }
@@ -78,10 +78,59 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     }catch(e){console.error(e);return null}
   }
   function fecha(iso){try{return new Date(iso).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
-  function share(){
-    const data={title:'Mi resultado · Deconocimiento Bíblico',text:'Mira mi resultado de Deconocimiento Bíblico',url:location.href};
-    if(navigator.share){navigator.share(data).catch(()=>{});return}
-    navigator.clipboard?.writeText(location.href).then(()=>alert('Enlace copiado.')).catch(()=>window.prompt('Copia este enlace:',location.href));
+  function imageCanvas(d){
+    const duel=d.tipo==='duelo', W=1200, H=duel?1050:1180, c=document.createElement('canvas');
+    c.width=W;c.height=H;const x=c.getContext('2d');
+    const bg=x.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0a2a52');bg.addColorStop(.5,'#061a33');bg.addColorStop(1,'#030914');x.fillStyle=bg;x.fillRect(0,0,W,H);
+    const glow=x.createRadialGradient(W/2,180,20,W/2,180,600);glow.addColorStop(0,'rgba(39,199,255,.24)');glow.addColorStop(1,'rgba(39,199,255,0)');x.fillStyle=glow;x.fillRect(0,0,W,500);
+    x.strokeStyle='rgba(39,199,255,.55)';x.lineWidth=3;x.strokeRect(34,34,W-68,H-68);
+    const rr=(px,py,pw,ph,r,fill,stroke)=>{x.beginPath();x.roundRect(px,py,pw,ph,r);x.fillStyle=fill;x.fill();if(stroke){x.strokeStyle=stroke;x.lineWidth=2;x.stroke()}};
+    const txt=(v,px,py,size,color,weight='800',align='center')=>{x.font=weight+' '+size+'px Inter,Segoe UI,Arial,sans-serif';x.fillStyle=color;x.textAlign=align;x.textBaseline='middle';x.fillText(String(v),px,py)};
+    const app=d.titulo||'DECONOCIMIENTO BÍBLICO';
+    txt(app.split('|')[0],W/2,82,34,'#8be6ff','900');
+    txt(d.iglesia||'',W/2,122,22,'#9bb4ca','700');
+    if(!duel){
+      txt('RESULTADO DE PARTIDA',W/2,188,24,'#ffd166','900');
+      txt(d.jugador||'Jugador',W/2,245,38,'#f5fbff','900');
+      txt(num(d.puntos),W/2,365,112,'#ffd166','1000'); txt('PUNTOS',W/2,435,20,'#9bb4ca','900');
+      const boxes=[[''+(d.aciertos||0)+' / '+(d.total||0),'ACIERTOS','#39e39b'],[''+(d.racha||0),'MEJOR RACHA','#ffd166'],[d.puesto?'#'+d.puesto:'—','PUESTO','#8be6ff']];
+      boxes.forEach((b,i)=>{const bx=70+i*365;rr(bx,500,335,145,18,'rgba(255,255,255,.045)','rgba(140,200,235,.18)');txt(b[0],bx+167,555,38,b[2],'950');txt(b[1],bx+167,605,14,'#9bb4ca','900')});
+      txt((d.nivel||'JUGADOR').toUpperCase(),W/2,720,28,'#8be6ff','900');
+      txt(d.cat||'',W/2,760,20,'#d9ebf7','700');
+      txt(d.completo?'PARTIDA COMPLETADA':'PARTIDA FINALIZADA',W/2,850,21,'#39e39b','900');
+    }else{
+      txt('⚡ DUELO BÍBLICO',W/2,188,24,'#ffd166','900');
+      const ps=[d.a,d.b]; ps.forEach((p,i)=>{const bx=i?650:70;rr(bx,255,480,360,22,'rgba(255,255,255,.045)',d.gana===i?'rgba(255,209,102,.7)':'rgba(140,200,235,.18)');txt(p.nombre,bx+240,305,30,'#f5fbff','900');txt(num(p.puntos),bx+240,400,65,'#ffd166','1000');txt((p.aciertos||0)+' / '+(p.respondidas||0)+' aciertos',bx+240,470,17,'#9bb4ca','800');txt('RACHA '+(p.racha||0),bx+240,525,15,'#8be6ff','900');if(d.gana===i)txt('🏆 GANADOR',bx+240,575,16,'#ffd166','900')});
+      txt('VS',W/2,435,34,'#27c7ff','1000');
+      txt(d.ganador?'GANADOR: '+d.ganador:'EMPATE',W/2,700,27,d.ganador?'#ffd166':'#8be6ff','900');
+      txt(d.cat||'',W/2,755,20,'#d9ebf7','700');
+    }
+    txt('DECONOCIMIENTO BÍBLICO · RESULTADO COMPARTIDO',W/2,H-82,15,'#718ba2','800');
+    return c;
+  }
+  async function share(){
+    const c=imageCanvas(d), blob=await new Promise(r=>c.toBlob(r,'image/png',.95));
+    const file=blob?new File([blob],'resultado-deconocimiento.png',{type:'image/png'}):null;
+    if(navigator.share){
+      try{
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          await navigator.share({title:(d.titulo||'Deconocimiento Bíblico')+' · '+(d.iglesia||''),text:'Mi resultado de partida',url:location.href,files:[file]});
+          return;
+        }
+        await navigator.share({title:'Mi resultado · '+(d.titulo||'Deconocimiento Bíblico'),text:'Mira mi resultado de partida',url:location.href});
+        return;
+      }catch(e){if(e&&e.name==='AbortError')return}
+    }
+    copy();
+  }
+  async function shareImage(){
+    const c=imageCanvas(d), blob=await new Promise(r=>c.toBlob(r,'image/png',.95));
+    if(!blob)return;
+    const file=new File([blob],'resultado-deconocimiento.png',{type:'image/png'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      try{await navigator.share({title:'Resultado · '+(d.iglesia||''),text:'Mi resultado de Deconocimiento Bíblico',files:[file]});return}catch(e){if(e&&e.name==='AbortError')return}
+    }
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='resultado-deconocimiento.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
   function copy(){
     navigator.clipboard?.writeText(location.href).then(()=>alert('Enlace copiado.')).catch(()=>window.prompt('Copia este enlace:',location.href));
@@ -104,11 +153,14 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background:rad
       '<div class="hero" style="padding:22px 0 4px"><div class="badge">'+(d.ganador?'🏆 Ganador: '+esc(d.ganador):'EMPATE')+'</div></div>'+
       '<div class="meta">'+(d.modo?'<span class="chip">Modo: <b>'+esc(d.modo)+'</b></span>':'')+(d.victorias!=null?'<span class="chip">Victorias: <b>'+esc(d.victorias)+'</b></span>':'')+'<span class="chip">'+esc(fecha(d.fecha))+'</span></div>'+buttons();
   }
-  function buttons(){return '<div class="share"><button class="btn" id="share">↗ Compartir resultado</button><button class="btn alt" id="copy">⧉ Copiar enlace</button></div>'}
+  function buttons(){return '<div class="share"><button class="btn" id="share">↗ Compartir resultado</button><button class="btn" id="shareImage">▣ Compartir imagen</button><button class="btn alt" id="copy">⧉ Copiar enlace</button></div>'}
   const d=decode(),host=$('#resultado');
   if(!d){host.innerHTML='<div class="error"><h2>Resultado no disponible</h2><p>El enlace no contiene una partida válida o está incompleto.</p></div>';return}
+  const bt=$('#brandTitle'); if(bt) bt.textContent=d.titulo||'DECONOCIMIENTO BÍBLICO';
+  const bs=$('#brandSmall'); if(bs) bs.textContent=d.iglesia||'Resultado de partida';
+  document.title=(d.titulo||'Deconocimiento Bíblico')+' · '+(d.iglesia||'Resultado');
   host.innerHTML=d.tipo==='duelo'?renderDuel(d):renderIndividual(d);
-  $('#share').onclick=share;$('#copy').onclick=copy;
+  $('#share').onclick=share;$('#shareImage').onclick=shareImage;$('#copy').onclick=copy;
 })();
 </script>
 </body>
